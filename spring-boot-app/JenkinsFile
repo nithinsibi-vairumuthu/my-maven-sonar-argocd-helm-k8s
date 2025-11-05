@@ -69,7 +69,27 @@ pipeline {
             }
         }
     }
+stage('GitOps Update Manifests') {
+    steps {
+        script {
+            // clone manifest repo
+            sh """
+            rm -rf spring-boot-app-manifests
+            git clone https://github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git
+            cd spring-boot-app-manifests
 
+            # Update deployment image
+            sed -i 's|image: .*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER}|g' deployment.yml
+
+            git config user.email "nithinsibi@gmail.com"
+            git config user.name "nithin-vairamuthu"
+            git add deployment.yml
+            git commit -m "Updated image tag to ${BUILD_NUMBER}"
+            git push https://@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git main
+            """
+        }
+    }
+}
     post {
         success {
             echo '✅ Build and Push Successful!'
