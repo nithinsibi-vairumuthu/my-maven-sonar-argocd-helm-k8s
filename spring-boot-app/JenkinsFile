@@ -39,15 +39,15 @@ pipeline {
     }
 }
 
-        stage('Build Docker Image') {
-            steps {
-              dir('spring-boot-app') {
-                    sh """
-                    docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER} .
-                    """
-                }
-            }
-        }
+       stage('Build Docker Image') {
+         steps {
+           sh """
+           cd ${WORKSPACE}/spring-boot-app
+           ls -l
+           docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER} .
+           """
+    }
+}
         stage('Trivy Scan') {
             steps {
                 sh """
