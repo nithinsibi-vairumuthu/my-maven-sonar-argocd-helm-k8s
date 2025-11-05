@@ -23,6 +23,7 @@ pipeline {
 
         stage('Maven Build') {
             steps {
+              dir('spring-boot-app') { 
                 sh 'mvn clean package -DskipTests'
             }
         }
