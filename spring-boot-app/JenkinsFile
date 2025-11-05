@@ -42,14 +42,12 @@ pipeline {
         stage('Build Docker Image') {
             steps {
               dir('spring-boot-app') {
-                script {
                     sh """
                     docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER} .
                     """
                 }
             }
         }
-}
         stage('Trivy Scan') {
             steps {
                 sh """
