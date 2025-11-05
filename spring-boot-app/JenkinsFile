@@ -2,13 +2,9 @@ pipeline {
     agent any
 
     environment {
-        // SonarQube server name configured in Jenkins
         SONARQUBE_SERVER = 'sonarqube-server'
-        // Docker Hub credentials ID from Jenkins credentials
         DOCKERHUB_CREDENTIALS = 'JENKINS1'
-        // Docker Hub username
         DOCKERHUB_USER = 'nithinsibi'
-        // Docker image name
         IMAGE_NAME = 'springboot-app'
     }
 
@@ -23,31 +19,31 @@ pipeline {
 
         stage('Maven Build') {
             steps {
-              dir('spring-boot-app') { 
-                sh 'mvn clean package -DskipTests'
+                dir('spring-boot-app') {
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
-}
 
-       stage('SonarQube Analysis') {
-          steps {
-            dir('spring-boot-app') {
-               withSonarQubeEnv("${SONARQUBE_SERVER}") {
-                sh 'mvn sonar:sonar'
+        stage('SonarQube Analysis') {
+            steps {
+                dir('spring-boot-app') {
+                    withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                        sh 'mvn sonar:sonar'
+                    }
+                }
             }
         }
-    }
-}
 
-       stage('Build Docker Image') {
-         steps {
-           sh """
-           cd ${WORKSPACE}/spring-boot-app
-           ls -l
-           docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER} .
-           """
-    }
-}
+        stage('Build Docker Image') {
+            steps {
+                sh """
+                cd ${WORKSPACE}/spring-boot-app
+                docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER} .
+                """
+            }
+        }
+
         stage('Trivy Scan') {
             steps {
                 sh """
@@ -59,7 +55,7 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'USER', passwordVariable: 'PASS')([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')])]) {
+                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh """
                     echo "$PASS" | docker login -u "$USER" --password-stdin
                     docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER}
@@ -68,28 +64,28 @@ pipeline {
                 }
             }
         }
-    }
-stage('GitOps Update Manifests') {
-    steps {
-        script {
-            // clone manifest repo
-            sh """
-            rm -rf spring-boot-app-manifests
-            git clone https://github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git
-            cd spring-boot-app-manifests
 
-            # Update deployment image
-            sed -i 's|image: .*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER}|g' deployment.yml
+        stage('GitOps Update Manifests') {
+            steps {
+                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
+                    sh """
+                    rm -rf spring-boot-app-manifests
+                    git clone https://github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git
+                    cd spring-boot-app-manifests
 
-            git config user.email "nithinsibi@gmail.com"
-            git config user.name "nithin-vairamuthu"
-            git add deployment.yml
-            git commit -m "Updated image tag to ${BUILD_NUMBER}"
-            git push https://${git-cred}@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git main
-            """
+                    sed -i 's|image: .*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER}|g' deployment.yml
+
+                    git config user.email "nithinsibi@gmail.com"
+                    git config user.name "nithin-vairamuthu"
+                    git add deployment.yml
+                    git commit -m "Updated image tag to ${BUILD_NUMBER}"
+                    git push https://${GITHUB_TOKEN}@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git main
+                    """
+                }
+            }
         }
     }
-}
+
     post {
         success {
             echo '✅ Build and Push Successful!'
