@@ -85,7 +85,7 @@ stage('GitOps Update Manifests') {
             git config user.name "nithin-vairamuthu"
             git add deployment.yml
             git commit -m "Updated image tag to ${BUILD_NUMBER}"
-            git push https://@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git main
+            git push https://${git-cred}@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git main
             """
         }
     }
