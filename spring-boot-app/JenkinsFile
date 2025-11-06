@@ -67,7 +67,7 @@ pipeline {
 
         stage('GitOps Update Manifests') {
             steps {
-                withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_TOKEN')]) {
+                withCredentials([string(credentialsId: 'git-cred', variable: 'GITHUB_TOKEN')]) {
                     sh """
                     rm -rf spring-boot-app-manifests
                     git clone https://github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git
