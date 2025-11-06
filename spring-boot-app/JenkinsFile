@@ -37,10 +37,11 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh """
-                cd ${WORKSPACE}/spring-boot-app
-                docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER} .
-                """
+                dir("${WORKSPACE}/spring-boot-app") {
+                    sh """
+                    docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER} .
+                    """
+                }
             }
         }
 
@@ -68,19 +69,22 @@ pipeline {
         stage('GitOps Update Manifests') {
             steps {
                 withCredentials([string(credentialsId: 'git-cred', variable: 'GITHUB_TOKEN')]) {
-                    sh """
+                    sh '''
                     rm -rf spring-boot-app-manifests
-                    git clone https://github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git
+                    git clone https://nithinsibi-vairumuthu:${GITHUB_TOKEN}@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git
                     cd spring-boot-app-manifests
 
-                    sed -i 's|image: .*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER}|g' deployment.yml
+                    # Update deployment image
+                    sed -i "s|image: .*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_NUMBER}|g" deployment.yml
 
+                    # Use your GitHub user info
                     git config user.email "nithinsibi@gmail.com"
                     git config user.name "nithin-vairamuthu"
+
                     git add deployment.yml
                     git commit -m "Updated image tag to ${BUILD_NUMBER}"
-                    git push https://${GITHUB_TOKEN}@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git main
-                    """
+                    git push https://nithinsibi-vairumuthu:${GITHUB_TOKEN}@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git main
+                    '''
                 }
             }
         }
