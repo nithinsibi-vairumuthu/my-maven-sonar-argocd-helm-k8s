@@ -83,7 +83,7 @@ pipeline {
 
                     git add deployment.yml
                     git commit -m "Updated image tag to ${BUILD_NUMBER}"
-                    git push https://nithinsibi-vairumuthu:${GITHUB_TOKEN}@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git main
+                    git push https://${GITHUB_TOKEN}@github.com/nithinsibi-vairumuthu/my-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests.git main
                     '''
                 }
             }
