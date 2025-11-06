@@ -71,7 +71,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'git-cred', variable: 'GITHUB_TOKEN')]) {
                     sh '''
                     rm -rf spring-boot-app-manifests
-                    git clone https://nithinsibi-vairumuthu:${GITHUB_TOKEN}@github.com/nithinsibi-vairumuthu/spring-boot-app-manifests.git
+                    git clone https://${GITHUB_TOKEN}@github.com/nithinsibi-vairumuthu/my-maven-sonar-argocd-helm-k8s.git
                     cd spring-boot-app-manifests
 
                     # Update deployment image
