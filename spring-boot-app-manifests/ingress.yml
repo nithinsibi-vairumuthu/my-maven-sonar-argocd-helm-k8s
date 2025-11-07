@@ -16,4 +16,4 @@ spec:
           service:
             name: spring-boot-app-service   # <- make sure this matches your service name
             port:
-              number: 8090                 # <- match your service port
+              number: 8080                 # <- match your service port
